@@ -1,0 +1,68 @@
+# Sanitized excerpt of the Arcanum stack. Real deployment keeps secrets in .env (chmod 600)
+# and pins every image to an exact version tag.
+#
+# The two things worth copying from this file:
+#   1. Jellyfin's /dev/dri passthrough for hardware transcoding
+#   2. Every service sharing one media root, so imports hardlink instead of copying
+
+services:
+  jellyfin:
+    image: jellyfin/jellyfin:10.x.y          # pin exactly; never :latest
+    container_name: jellyfin
+    user: "1000:1001"                         # member of the shared media group
+    group_add:
+      - "989"                                 # render group, for QuickSync
+    devices:
+      - /dev/dri:/dev/dri                     # Intel QuickSync hardware transcoding
+    volumes:
+      - /srv/appdata/jellyfin:/config
+      - /srv/media:/media:ro
+    restart: unless-stopped
+
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:x.y.z
+    environment:
+      - PUID=1000
+      - PGID=1001
+      - UMASK=002                             # group-writable, so *arr can hardlink
+    volumes:
+      - /srv/appdata/qbittorrent:/config
+      - /srv/media:/srv/media                 # SAME mount path as the *arr services --
+      -                                       # identical paths are what make hardlinks work
+    restart: unless-stopped
+
+  radarr:
+    image: lscr.io/linuxserver/radarr:x.y.z
+    environment:
+      - PUID=1000
+      - PGID=1001
+      - UMASK=002
+    volumes:
+      - /srv/appdata/radarr:/config
+      - /srv/media:/srv/media                 # must match qbittorrent exactly
+    restart: unless-stopped
+
+  immich-server:
+    image: ghcr.io/immich-app/immich-server:vX.Y.Z
+    depends_on:
+      - database                              # name is hardcoded in Immich -- do not rename
+      - redis                                 # same
+    volumes:
+      - /srv/media/photos:/usr/src/app/upload
+    env_file: .env
+    restart: unless-stopped
+
+  database:                                   # MUST be named "database"
+    image: tensorchord/pgvecto-rs:pgX-vY.Z.W
+    environment:
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_DB=${DB_DATABASE_NAME}
+    volumes:
+      - /srv/appdata/immich/pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+    # on the update hold list -- never upgraded unattended
+
+  redis:                                      # MUST be named "redis"
+    image: valkey/valkey:X.Y-alpine
+    restart: unless-stopped

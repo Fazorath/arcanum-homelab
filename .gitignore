@@ -1,0 +1,5 @@
+.env
+*.log
+secrets/
+*-keys.txt
+.DS_Store
