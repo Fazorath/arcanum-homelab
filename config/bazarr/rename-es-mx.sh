@@ -11,5 +11,7 @@ esac
 dir=$(dirname "$f")
 base=$(basename "$f")
 new="$dir/$(printf '%s' "$base" | sed 's/\.es-MX\./.es./')"
-# Never clobber an existing plain-es subtitle; drop the duplicate instead.
-if [ -e "$new" ]; then rm -f -- "$f"; else mv -- "$f" "$new"; fi
+# Never clobber an existing plain-es subtitle. Keep the es-MX file instead of deleting it, so
+# Bazarr still counts Spanish (Latino) as present and does not search for it again.
+[ -e "$new" ] || mv -- "$f" "$new"
+exit 0
