@@ -41,7 +41,7 @@ codes (alpha3 plus optional country; `ea` is `spa-MX`). `spa:spa-MX` means "when
 has Spanish, treat it as also having Spanish (Latino)". Set in Settings > Languages >
 Language Equals, or `POST /api/system/settings` with `settings-general-language_equals=spa:spa-MX`
 (a JSON list value gets stored as a nested list; send the plain string). Changing it
-re-indexes subtitles right away. Wanted for `ea` went from 97 items to 15.
+re-indexes subtitles right away. Wanted for `ea` went from 97 items to 13 (7 episodes, 6 movies).
 
 The rename script stays; Language Equals only fixes what Bazarr counts as missing, and the script
 is still what makes Jellyfin see `.es`. It changed in one way: when a `.es` twin already exists it
@@ -52,7 +52,8 @@ the HI download (what the old script did) would loop forever. With the file kept
 
 Checked live 2026-10-27: Wanted fell from 97 items to 13 (the rest have no Spanish at all or
 no provider match), repeated searches made no new `ea` downloads, Tulsa King S03E10 kept
-`.es.hi` plus `.es-MX.hi`. No `.es` file or media file was touched.
+`.es.hi` plus `.es-MX.hi`. No `.es` file or media file was touched. `en` Wanted is unchanged (1 movie before and after, 0 episodes).
+Bazarr's adaptive search also throttles repeat searches for items no provider has, so the 13 left are not hammered every cycle.
 
 (Fallback not needed: keep `es-MX` and add a `.es` hardlink.)
 
