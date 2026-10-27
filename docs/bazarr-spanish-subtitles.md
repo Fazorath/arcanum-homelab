@@ -8,24 +8,36 @@ issue #3 (part of #1).
 - Bazarr's "Spanish (Latino)" language (code `ea`, es-419) saves files as `Name.es-MX.srt`.
   Jellyfin does not parse the `es-MX` tag, so the stream has no language and never
   auto-selects. A plain `Name.es.srt` is recognised.
-- The old default profile (`English + Spanish`: en, ea, es, no cutoff) fetched both.
 
 ## Configuration (live in Bazarr, 2026-10-27)
 
+English stays the household default; only Dad's Jellyfin account prefers Spanish. Bazarr
+can't tell accounts apart, so it fetches both languages for everything.
+
 | Setting | Value |
 |---|---|
-| Profile 2 | `Spanish (es-419, then es)`: items `ea` then `es`, cutoff = `es` (either one satisfies it) |
-| Default for new series / movies | Profile 2 (`serie_default_profile`, `movie_default_profile`) |
+| Profile 1 | `English + Spanish`: items `en`, `ea` (Spanish Latino, es-419), `es`. **No cutoff**, so all three are fetched |
+| Default for new series / movies | Profile 1 (`serie_default_profile`, `movie_default_profile`) |
 | Assigned to existing items | all 15 series and 58 movies |
 | Post-processing | on, `/config/rename-es-mx.sh "{{subtitles}}"` |
 
-Profile 1 (`English + Spanish`) is kept, unused. English subtitles already on disk stay.
-Profile 2 does not fetch new English subtitles; switch an item back to profile 1 for that.
+(An earlier Spanish-only profile was tried and removed.)
 
 `config/bazarr/rename-es-mx.sh` is copied to `/srv/appdata/bazarr/` (`/config` in the
-container). After a download of an `es-MX` file it renames it to `.es` (same folder, never
-overwrites an existing `.es`). Bazarr re-indexes the new name on its next disk scan, and the
-cutoff stops it re-fetching.
+container). After Bazarr downloads an `es-MX` file it renames it to `.es` (same folder, never
+overwrites an existing `.es`; a duplicate is dropped). Bazarr re-indexes the new name on its
+next disk scan.
+
+## Jellyfin: Dad's account only
+
+Setting these needs a signed-in session or API key, which agents don't use. Do it once by
+hand, as Miami (or as an admin editing the Miami user):
+
+1. Log in as Miami > Settings > Playback (admin: Dashboard > Users > Miami > Playback).
+2. Preferred audio language: Spanish.
+3. Settings > Subtitles: preferred subtitle language Spanish; subtitle mode **Smart**
+   (Spanish subtitles when the audio isn't Spanish).
+4. Leave every other user untouched; they stay on English.
 
 ## One-off fix of existing files
 
@@ -37,8 +49,8 @@ re-encoded.
 
 ## Steps to redo it
 
-1. Bazarr > Settings > Languages: enable Spanish and Spanish (Latino); add the profile above;
-   set it as default for series and movies.
+1. Bazarr > Settings > Languages: enable English, Spanish and Spanish (Latino); make the
+   profile above (no cutoff) and set it as default for series and movies.
 2. Bazarr > Series / Movies > Mass Edit: select all, set the profile.
 3. Settings > Subtitles > Post-processing: enable, set the command above.
 4. Rename old `*.es-MX*.srt` files as described, then scan disk in Bazarr and rescan the
@@ -46,7 +58,8 @@ re-encoded.
 
 ## Verify
 
-- `Bazarr > Wanted` lists only titles with no Spanish subtitle on any provider.
+- `Bazarr > Wanted` lists only titles a provider has no subtitle for.
 - Jellyfin: play a Tulsa King episode as Miami; Spanish subtitle auto-selects.
-- API: `GET /api/system/languages/profiles` shows profile 2; `GET /api/series` and
-  `/api/movies` show `profileId: 2` everywhere.
+- API: `GET /api/system/languages/profiles` shows profile 1 with no cutoff; `GET /api/series`
+  and `/api/movies` show `profileId: 1` everywhere.
+- Jellyfin: Miami's Playback and Subtitles pages show Spanish / Smart; another user's don't.
