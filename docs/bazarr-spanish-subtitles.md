@@ -19,14 +19,42 @@ can't tell accounts apart, so it fetches both languages for everything.
 | Profile 1 | `English + Spanish`: items `en`, `ea` (Spanish Latino, es-419), `es`. **No cutoff**, so all three are fetched |
 | Default for new series / movies | Profile 1 (`serie_default_profile`, `movie_default_profile`) |
 | Assigned to existing items | all 15 series and 58 movies |
+| Language Equals | `spa:spa-MX` (`general.language_equals`): a Spanish (`.es`) subtitle also counts as Spanish (Latino, `ea`) |
 | Post-processing | on, `/config/rename-es-mx.sh "{{subtitles}}"` |
 
 (An earlier Spanish-only profile was tried and removed.)
 
 `config/bazarr/rename-es-mx.sh` is copied to `/srv/appdata/bazarr/` (`/config` in the
 container). After Bazarr downloads an `es-MX` file it renames it to `.es` (same folder, never
-overwrites an existing `.es`; a duplicate is dropped). Bazarr re-indexes the new name on its
+overwrites an existing `.es`; if one exists the `es-MX` file stays). Bazarr re-indexes the new name on its
 next disk scan.
+
+## Why Language Equals (issue #9)
+
+Without it the rename loop broke Bazarr's bookkeeping: Bazarr saved `ea` as `Name.es-MX.srt`,
+the script renamed it to `.es` (or deleted it when a `.es` existed), Bazarr then saw no `ea`
+subtitle, listed the item as Wanted and downloaded es-419 again on every search (97 items,
+11 wasted downloads in one run).
+
+Fix: Bazarr 1.6.2 `general.language_equals`. The value is `from:to` in Bazarr's internal
+codes (alpha3 plus optional country; `ea` is `spa-MX`). `spa:spa-MX` means "when an item
+has Spanish, treat it as also having Spanish (Latino)". Set in Settings > Languages >
+Language Equals, or `POST /api/system/settings` with `settings-general-language_equals=spa:spa-MX`
+(a JSON list value gets stored as a nested list; send the plain string). Changing it
+re-indexes subtitles right away. Wanted for `ea` went from 97 items to 15.
+
+The rename script stays; Language Equals only fixes what Bazarr counts as missing, and the script
+is still what makes Jellyfin see `.es`. It changed in one way: when a `.es` twin already exists it
+now **keeps** the `es-MX` file instead of deleting it. That matters for items whose only Spanish
+file is `.es.hi`: Bazarr only expands plain Spanish, so those stay Wanted for `ea`, and deleting
+the HI download (what the old script did) would loop forever. With the file kept, Bazarr counts
+`ea` as present. Jellyfin ignores the unlabelled `es-MX` copy.
+
+Checked live 2026-10-27: Wanted fell from 97 items to 13 (the rest have no Spanish at all or
+no provider match), repeated searches made no new `ea` downloads, Tulsa King S03E10 kept
+`.es.hi` plus `.es-MX.hi`. No `.es` file or media file was touched.
+
+(Fallback not needed: keep `es-MX` and add a `.es` hardlink.)
 
 ## Jellyfin: Dad's account only
 
@@ -58,6 +86,7 @@ re-encoded.
 
 ## Verify
 
+- Settings > Languages > Language Equals shows `Spanish -> Spanish (Latino)` (`spa:spa-MX`).
 - `Bazarr > Wanted` lists only titles a provider has no subtitle for.
 - Jellyfin: play a Tulsa King episode as Miami; Spanish subtitle auto-selects.
 - API: `GET /api/system/languages/profiles` shows profile 1 with no cutoff; `GET /api/series`
