@@ -3,3 +3,6 @@
 secrets/
 *-keys.txt
 .DS_Store
+
+# Recyclarr secrets
+config/recyclarr/secrets.yml

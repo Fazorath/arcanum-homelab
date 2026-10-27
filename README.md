@@ -43,6 +43,8 @@ Prowlarr, Bazarr, qBittorrent, Audiobookshelf, Listenarr
   live on one filesystem, and the one rsync flag that decides whether a migration works.
 - **[Update pipeline](docs/update-pipeline.md)** — detecting new images without letting
   anything upgrade a database unattended.
+- **[Audio language rule](docs/recyclarr-audio-language.md)** — English first, Spanish only as a
+  same-tier bonus, and how Recyclarr enforces it.
 - **[Incidents](docs/incidents.md)** — real failures and their root causes.
 
 ## Design decisions

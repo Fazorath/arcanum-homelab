@@ -1,0 +1,12 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/recyclarr/recyclarr/master/schemas/settings-schema.json
+# Local custom formats that are not in the TRaSH guides. Paths are inside the recyclarr container
+# (/config is /srv/appdata/recyclarr on the host).
+resource_providers:
+  - name: arcanum-radarr-cfs
+    type: custom-formats
+    path: /config/custom-formats/radarr
+    service: radarr
+  - name: arcanum-sonarr-cfs
+    type: custom-formats
+    path: /config/custom-formats/sonarr
+    service: sonarr

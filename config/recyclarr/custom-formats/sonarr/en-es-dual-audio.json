@@ -1,0 +1,35 @@
+{
+  "trash_id": "a7e5d3c1b9f24e60a1c8d2f4b6e80a31",
+  "name": "EN+ES Dual Audio",
+  "includeCustomFormatWhenRenaming": false,
+  "specifications": [
+    {
+      "name": "English",
+      "implementation": "LanguageSpecification",
+      "negate": false,
+      "required": true,
+      "fields": { "value": 1 }
+    },
+    {
+      "name": "Spanish",
+      "implementation": "LanguageSpecification",
+      "negate": false,
+      "required": false,
+      "fields": { "value": 3 }
+    },
+    {
+      "name": "Spanish (Latino)",
+      "implementation": "LanguageSpecification",
+      "negate": false,
+      "required": false,
+      "fields": { "value": 34 }
+    },
+    {
+      "name": "Dual / Latino / ENG-SPA tag",
+      "implementation": "ReleaseTitleSpecification",
+      "negate": false,
+      "required": false,
+      "fields": { "value": "\\b(dual|latino|eng[ ._/-]?spa|spa[ ._/-]?eng)\\b" }
+    }
+  ]
+}

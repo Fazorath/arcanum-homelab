@@ -1,0 +1,76 @@
+# yaml-language-server: $schema=https://schemas.recyclarr.dev/v8/config-schema.json
+# Merged from TRaSH templates web-1080p + sonarr-anime-remux-1080p + hd-bluray-web + radarr-anime-remux-1080p
+# (generated 2 Sep 2026). API keys come from secrets.yml next to this file (gitignored, see secrets.example.yml).
+# 2026-10: English audio is primary, Spanish second track only as a small same-tier bonus (EN+ES Dual Audio, GH #4).
+sonarr:
+  sonarr_main:
+    base_url: http://sonarr:8989
+    api_key: !secret sonarr_api_key
+    quality_definition:
+      type: series
+    quality_profiles:
+      - trash_id: 72dae194fc92bf828f32cde7744e51a1  # WEB-1080p
+        min_upgrade_format_score: 5  # a +4 EN+ES match alone must not trigger an upgrade; repack/proper (+5) still does
+        reset_unmatched_scores:
+          enabled: true
+      - trash_id: 20e0fc959f1f1704bed501f23bdae76f  # [Anime] Remux-1080p
+        reset_unmatched_scores:
+          enabled: true
+    custom_formats:
+      - trash_ids:
+          - a7e5d3c1b9f24e60a1c8d2f4b6e80a31  # EN+ES Dual Audio (local, custom-formats/sonarr)
+        assign_scores_to:
+          - trash_id: 72dae194fc92bf828f32cde7744e51a1  # WEB-1080p
+            score: 4
+          - name: HD-1080p
+            score: 4
+      - trash_ids:
+          - ae575f95ab639ba5d15f663bf019e3e8  # Language: Not Original (HD-1080p had no language rejection; the WEB-1080p profile gets it from the language group)
+        assign_scores_to:
+          - name: HD-1080p
+            score: -10000
+    custom_format_groups:
+      add:
+        - trash_id: 158188097a58d7687dee647e04af0da3  # [Optional] Golden Rule HD
+        - trash_id: 74aff4168620ed49dcc67e92b2c2a5b4  # [Optional] Language Profiles
+        - trash_id: 85fae4a2294965b75710ef2989c850eb  # [Streaming Services] HD/UHD boost
+        - trash_id: 59c3af66780d08332fdc64e68297098f  # [Unwanted] Unwanted Formats
+        - trash_id: f54985e5e96747cef58731f1cf4c9181  # [Streaming Services] Anime
+radarr:
+  radarr_main:
+    base_url: http://radarr:7878
+    api_key: !secret radarr_api_key
+    quality_definition:
+      type: movie
+    quality_profiles:
+      - trash_id: d1d67249d3890e49bc12e275d989a7e9  # HD Bluray + WEB
+        min_upgrade_format_score: 5  # a +4 EN+ES match alone must not trigger an upgrade; repack/proper (+5) still does
+        reset_unmatched_scores:
+          enabled: true
+      - name: WEB-1080p  # not TRaSH-managed; 72 movies use it
+        min_upgrade_format_score: 5
+      - trash_id: 722b624f9af1e492284c4bc842153a38  # [Anime] Remux-1080p
+        reset_unmatched_scores:
+          enabled: true
+    custom_formats:
+      - trash_ids:
+          - a7e5d3c1b9f24e60a1c8d2f4b6e80a31  # EN+ES Dual Audio (local, custom-formats/radarr)
+        assign_scores_to:
+          - trash_id: d1d67249d3890e49bc12e275d989a7e9  # HD Bluray + WEB
+            score: 4
+          - name: WEB-1080p
+            score: 4
+          - name: HD - 720p/1080p
+            score: 4
+      - trash_ids:
+          - d6e9318c875905d6cfb5bee961afcea9  # Language: Not Original (English-original titles never get a no-English release)
+        assign_scores_to:
+          - trash_id: d1d67249d3890e49bc12e275d989a7e9  # HD Bluray + WEB
+            score: -10000
+          - name: WEB-1080p
+            score: -10000
+    custom_format_groups:
+      add:
+        - trash_id: f8bf8eab4617f12dfdbd16303d8da245  # [Optional] Golden Rule HD
+        - trash_id: a3ac6af01d78e4f21fcb75f601ac96df  # [Unwanted] Unwanted Formats
+        - trash_id: f993ad37540147e4d00e66503545d81b  # [Streaming Services] Anime
