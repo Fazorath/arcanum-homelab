@@ -24,4 +24,44 @@ Anime profiles are untouched.
 2. Copy to `/srv/appdata/recyclarr/` (via `~/server/appdata/recyclarr`). `secrets.yml` lives there only and is gitignored (template: `secrets.example.yml`).
 3. `docker exec recyclarr recyclarr sync`, then run it again: the second run must say everything is up to date.
 
-Not covered here: making the English track the default flag inside the file (GH #6), and Spanish subtitles (GH #3).
+Spanish subtitles are covered in [bazarr-spanish-subtitles.md](bazarr-spanish-subtitles.md) (GH #3).
+
+## Playback: which audio track Jellyfin picks
+
+EN+ES files must start in English for the household and in Spanish for Dad (Miami). The file's
+own *default* flag is not touched: the Radarr/Sonarr containers have no mkvtoolnix or ffprobe,
+so an On Import script can't re-flag tracks, and the owner chose a per-account Jellyfin setting
+over a host job or custom arr image (GH #6, option 1). No media file, Recyclarr, arr, Bazarr or
+Jellyfin server config changes.
+
+### Per-account settings (by hand, once)
+
+Agents have no Jellyfin credentials. For **every household account except Miami**, sign in
+(password or Quick Connect) > Settings > Playback and set:
+
+- *Preferred audio language*: **English**
+- *Play default audio track regardless of language*: **off**
+- *Remember audio selections*: **off**
+
+Miami stays as it is (Spanish audio; Subtitles Spanish + Smart, see
+[the Miami section](bazarr-spanish-subtitles.md#jellyfin-dads-account-only)). Check that Miami's
+Playback page still shows Spanish.
+
+Gotcha: *Remember audio selections* stores the track picked last time per series and overrides
+the preference. Leave it off, or an old Spanish pick keeps winning.
+
+Out of scope: players outside Jellyfin (VLC, Plex, direct file play) still follow the file's
+default flag.
+
+### Verify
+
+Play an EN+ES file from the start as a non-Miami account on the Fire TV/Android TV and the web
+client. The audio menu shows **English** selected without touching it. As Miami, the same file
+starts on Spanish. Best test file: one whose default flag is on the Spanish track. List audio
+streams read-only with:
+
+```
+docker exec jellyfin /usr/lib/jellyfin-ffmpeg/ffprobe -v error -select_streams a \
+  -show_entries stream=index,codec_name:stream_tags=language:stream_disposition=default \
+  -of csv=p=0 "/media/movies/<file>"
+```

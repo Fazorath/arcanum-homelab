@@ -66,7 +66,8 @@ hand, as Miami (or as an admin editing the Miami user):
 2. Preferred audio language: Spanish.
 3. Settings > Subtitles: preferred subtitle language Spanish; subtitle mode **Smart**
    (Spanish subtitles when the audio isn't Spanish).
-4. Leave every other user untouched; they stay on English.
+4. Every other user gets English audio instead: see
+   [Playback: which audio track Jellyfin picks](recyclarr-audio-language.md#playback-which-audio-track-jellyfin-picks).
 
 ## One-off fix of existing files
 
